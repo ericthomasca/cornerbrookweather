@@ -2,7 +2,10 @@ package main
 
 import (
 
-	"github.com/mttn/go-mastodon"
+	"fmt"
+	// "github.com/mttn/go-mastodon"
 )
 
-func main()
+func main() {
+	fmt.Println("Test")
+}
