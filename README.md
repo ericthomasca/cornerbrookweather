@@ -12,5 +12,5 @@ The CornerBrook Weather App is a Go application designed to retrieve current wea
 
 ## Configuration
 
-- Create a .env file in the project directory.
-- Add your API key and access token to the .env file:
+- Rename .env.example to .env or make a copy.
+- Add the keys from your Mastodon application to the .env:
