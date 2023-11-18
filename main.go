@@ -1,8 +1,8 @@
 package main
 
 import (
-	"context"
-	"fmt"
+	// "context"
+	// "fmt"
 	"log"
 	"os"
 
@@ -29,18 +29,18 @@ func main() {
 	}
 
 	// TODO: get weather data
-	status := "Test"
+	// status := "Test"
 
-	postStatus(client, status)
+	// postStatus(client, status)
 }
 
-func postStatus(client *mastodon.Client, status string) {
-	newStatus, err := client.PostStatus(context.Background(), &mastodon.Toot{
-		Status: status,
-	})
-	if err != nil {
-		log.Println("Error posting status:", err)
-		return
-	}
-	fmt.Println("Posted status with ID:", newStatus.ID)
-}
+// func postStatus(client *mastodon.Client, status string) {
+// 	newStatus, err := client.PostStatus(context.Background(), &mastodon.Toot{
+// 		Status: status,
+// 	})
+// 	if err != nil {
+// 		log.Println("Error posting status:", err)
+// 		return
+// 	}
+// 	fmt.Println("Posted status with ID:", newStatus.ID)
+// }
