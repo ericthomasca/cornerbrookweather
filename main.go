@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/ericthomasca/cornerbrookweather/weather"
 	"github.com/joho/godotenv"
@@ -12,6 +13,16 @@ import (
 )
 
 func main() {
+	err := WeatherUpdate()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+			time.Sleep(time.Hour)
+}
+
+// WeatherUpdate fetches weather data and posts it to Mastodon.
+func WeatherUpdate() error {
 	// Load .env
 	err := godotenv.Load()
 	if err != nil {
@@ -68,12 +79,15 @@ func main() {
 	if client == nil {
 		log.Fatal("Problem connecting to mastodon")
 	}
-	newStatus, err := client.PostStatus(context.Background(), &mastodon.Toot{
+
+	_, err = client.PostStatus(context.Background(), &mastodon.Toot{
 		Status: status,
 	})
 	if err != nil {
 		log.Fatal(err)
-		return
+		return err
 	}
-	log.Println("Posted status with ID:", newStatus.ID)
+
+	log.Printf("Posted weather update for %s.", updatedDateTime)
+	return nil
 }
