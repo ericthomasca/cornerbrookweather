@@ -12,6 +12,7 @@
 !LICENSE
 
 !.env.example
+!Dockerfile
 
 # ...even if they are in subdirectories
 !*/
