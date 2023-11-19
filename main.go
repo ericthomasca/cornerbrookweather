@@ -1,17 +1,14 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"log"
-	"math"
 	"os"
-	"strconv"
+	"strings"
 
 	"github.com/ericthomasca/cornerbrookweather/weather"
 	"github.com/joho/godotenv"
 	"github.com/mattn/go-mastodon"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 func main() {
@@ -24,8 +21,42 @@ func main() {
 	// Pull environmental variables
 	city := os.Getenv("CITY")
 	state := os.Getenv("STATE")
-	country_code := os.Getenv("COUNRTY_CODE")
-	api_key := os.Getenv("OPENWEATHERMAP_API_KEY")
+	countryCode := os.Getenv("COUNRTY_CODE")
+	apiKey := os.Getenv("OPENWEATHERMAP_API_KEY")
+
+	// Get weather data
+	weatherData := weather.GetWeatherData(city, state, countryCode, apiKey)
+	temperature := weather.GetTemperature(weatherData)
+	feelsLike := weather.GetFeelsLike(weatherData)
+	description := weather.GetDescription(weatherData)
+	humidity := weather.GetHumidity(weatherData)
+	pressure := weather.GetPressure(weatherData)
+	wind := weather.GetWind(weatherData)
+	gusts := weather.GetGustSpeed(weatherData)
+	location := weather.GetLocation(weatherData)
+	updatedDateTime := weather.GetUpdatedDateTime(weatherData)
+
+	// Build toot
+	builder := strings.Builder{}
+	builder.WriteString(location)
+	builder.WriteString(" Weather Update: ")
+	builder.WriteString(description)
+	builder.WriteString(" at ")
+	builder.WriteString(temperature)
+	builder.WriteString(", feels like ")
+	builder.WriteString(feelsLike)
+	builder.WriteString(". Humidity is ")
+	builder.WriteString(humidity)
+	builder.WriteString(". Pressure is ")
+	builder.WriteString(pressure)
+	builder.WriteString(". Winds of ")
+	builder.WriteString(wind)
+	builder.WriteString(" with gusts of ")
+	builder.WriteString(gusts)
+	builder.WriteString(". Information updated at ")
+	builder.WriteString(updatedDateTime)
+	builder.WriteString(". #CornerBrook #Newfoundland #WeatherUpdate")
+	status := builder.String()
 
 	// Connect to Mastodon
 	client := mastodon.NewClient(&mastodon.Config{
@@ -37,36 +68,12 @@ func main() {
 	if client == nil {
 		log.Fatal("Problem connecting to mastodon")
 	}
-
-	// Get current weather
-	current_weather := weather.GetWeather(city, state, country_code, api_key)
-
-	// Get current temp
-	// Convert to celcius
-	current_temperature_value := math.Round(current_weather.Main.Temp - 273.15)
-	// Convert float to string
-	current_temperature_value_string := strconv.FormatFloat(current_temperature_value, 'f', -1, 64)
-	// Add degree celcius notation
-	current_temperature := current_temperature_value_string + "°C"
-	fmt.Println(current_temperature)
-
-	// Get description
-	caser := cases.Title(language.English)
-	current_description := caser.String(current_weather.Weather[0].Description)
-	fmt.Println(current_description)
-
-	// status := "Test"
-
-	// postStatus(client, status)
+	newStatus, err := client.PostStatus(context.Background(), &mastodon.Toot{
+		Status: status,
+	})
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	log.Println("Posted status with ID:", newStatus.ID)
 }
-
-// func postStatus(client *mastodon.Client, status string) {
-// 	newStatus, err := client.PostStatus(context.Background(), &mastodon.Toot{
-// 		Status: status,
-// 	})
-// 	if err != nil {
-// 		log.Println("Error posting status:", err)
-// 		return
-// 	}
-// 	fmt.Println("Posted status with ID:", newStatus.ID)
-// }

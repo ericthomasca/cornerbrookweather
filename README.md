@@ -13,4 +13,4 @@ The CornerBrook Weather App is a Go application designed to retrieve current wea
 ## Configuration
 
 - Rename .env.example to .env or make a copy.
-- Add the keys from your Mastodon application to the .env:
+- Edit the .env with values provided from Mastodon and OpenWeatherMap.
