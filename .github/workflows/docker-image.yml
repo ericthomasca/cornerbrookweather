@@ -14,8 +14,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build and tag Docker image
-        run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/cornerbrookweather:$(date +%s) .
+        run: docker build -t ghcr.io/${{ github.repository_owner }}/cornerbrookweather .
   push:
     needs: build
     runs-on: ubuntu-latest
@@ -31,8 +30,4 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push Docker image to GHCR
-        run: |
-          # Retrieve the image name from the environment file
-          # IMAGE_NAME=$(cat $GITHUB_ENV | grep IMAGE_NAME | cut -d'=' -f2)
-          # docker push ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
-          docker push ghcr.io/${{ github.repository_owner }}/cornerbrookweather:$(date +%s)
+        run: docker push ghcr.io/${{ github.repository_owner }}/cornerbrookweather
