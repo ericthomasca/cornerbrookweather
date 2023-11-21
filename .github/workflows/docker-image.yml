@@ -11,25 +11,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Build Docker image
+      - name: Build and tag Docker image
         run: |
-          docker build . --file Dockerfile --tag cornerbrookweather:$(date +%s)
-      - name: Tag image
-        run: docker tag cornerbrookweather:$(date +%s) ghcr.io/${{ github.repository_owner }}/cornerbrookweather:$(date +%s)
-          # or save the image name to an environment file
-          # echo "IMAGE_NAME=go-weather-mastodon:$(date +%s)" >> $GITHUB_ENV
-
+          docker build -t ghcr.io/${{ github.repository_owner }}/cornerbrookweather:$(date +%s) .
   push:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Login to GHCR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
