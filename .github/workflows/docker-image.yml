@@ -15,9 +15,9 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build . --file Dockerfile --tag go-weather-mastodon:$(date +%s)
-          # Optionally, you can tag the image for GHCR here if needed
-          # docker tag go-weather-mastodon:$(date +%s) ghcr.io/${{ github.repository_owner }}/go-weather-mastodon:$(date +%s)
+          docker build . --file Dockerfile --tag cornerbrookweather:$(date +%s)
+      - name: Tag iamge
+        run: docker tag cornerbrookweather:$(date +%s) ghcr.io/${{ github.repository_owner }}/cornerbrookweather:$(date +%s)
           # or save the image name to an environment file
           # echo "IMAGE_NAME=go-weather-mastodon:$(date +%s)" >> $GITHUB_ENV
 
@@ -40,4 +40,4 @@ jobs:
           # Retrieve the image name from the environment file
           # IMAGE_NAME=$(cat $GITHUB_ENV | grep IMAGE_NAME | cut -d'=' -f2)
           # docker push ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
-          docker push ghcr.io/${{ github.repository_owner }}/go-weather-mastodon:$(date +%s)
+          docker push ghcr.io/${{ github.repository_owner }}/cornerbrookweather:$(date +%s)
