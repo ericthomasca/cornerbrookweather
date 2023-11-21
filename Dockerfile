@@ -8,6 +8,6 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o /go-weather-mastodon
+RUN CGO_ENABLED=0 GOOS=linux go build -o /cornerbrookweather
 
 CMD ["/go-weather-mastodon"]
