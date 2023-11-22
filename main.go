@@ -8,86 +8,90 @@ import (
 	"time"
 
 	"github.com/ericthomasca/cornerbrookweather/weather"
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 	"github.com/mattn/go-mastodon"
 )
 
 func main() {
-	err := WeatherUpdate()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-			time.Sleep(time.Hour)
-}
-
-// WeatherUpdate fetches weather data and posts it to Mastodon.
-func WeatherUpdate() error {
-	// Load .env
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
+	// Load .env -- OMIT for image build
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	// Pull environmental variables
 	city := os.Getenv("CITY")
 	state := os.Getenv("STATE")
 	countryCode := os.Getenv("COUNRTY_CODE")
 	apiKey := os.Getenv("OPENWEATHERMAP_API_KEY")
+	mastodonServer := os.Getenv("MASTODON_SERVER")
+	mastodonClientKey := os.Getenv("MASTODON_CLIENT_KEY")
+	mastodonClientSecret := os.Getenv("MASTODON_CLIENT_SECRET")
+	mastodonAccessToken := os.Getenv("MASTODON_ACCESS_TOKEN")
 
-	// Get weather data
-	weatherData := weather.GetWeatherData(city, state, countryCode, apiKey)
-	temperature := weather.GetTemperature(weatherData)
-	feelsLike := weather.GetFeelsLike(weatherData)
-	description := weather.GetDescription(weatherData)
-	humidity := weather.GetHumidity(weatherData)
-	pressure := weather.GetPressure(weatherData)
-	wind := weather.GetWind(weatherData)
-	gusts := weather.GetGustSpeed(weatherData)
-	location := weather.GetLocation(weatherData)
-	updatedDateTime := weather.GetUpdatedDateTime(weatherData)
+	for {
+		weatherData, err := weather.Data(city, state, countryCode, apiKey)
+		if err != nil {
+			log.Fatal(err)
+		}
+	
+		status := buildWeatherStatus(weatherData)
+	
+		err = postToMastodon(status, mastodonServer, mastodonClientKey, mastodonClientSecret, mastodonAccessToken)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	// Build toot
-	builder := strings.Builder{}
-	builder.WriteString(location)
-	builder.WriteString(" Weather Update: ")
-	builder.WriteString(description)
-	builder.WriteString(" at ")
-	builder.WriteString(temperature)
-	builder.WriteString(", feels like ")
-	builder.WriteString(feelsLike)
-	builder.WriteString(". Humidity is ")
-	builder.WriteString(humidity)
-	builder.WriteString(". Pressure is ")
-	builder.WriteString(pressure)
-	builder.WriteString(". Winds of ")
-	builder.WriteString(wind)
-	builder.WriteString(" with gusts of ")
-	builder.WriteString(gusts)
-	builder.WriteString(". Information updated at ")
-	builder.WriteString(updatedDateTime)
-	builder.WriteString(". #CornerBrook #Newfoundland #WeatherUpdate")
-	status := builder.String()
-
-	// Connect to Mastodon
-	client := mastodon.NewClient(&mastodon.Config{
-		Server:       os.Getenv("MASTODON_SERVER"),
-		ClientID:     os.Getenv("MASTODON_CLIENT_KEY"),
-		ClientSecret: os.Getenv("MASTODON_CLIENT_SECRET"),
-		AccessToken:  os.Getenv("MASTODON_ACCESS_TOKEN"),
-	})
-	if client == nil {
-		log.Fatal("Problem connecting to mastodon")
+		time.Sleep(time.Hour)
 	}
+}
 
-	_, err = client.PostStatus(context.Background(), &mastodon.Toot{
+func buildWeatherStatus(weatherData weather.Response) string {
+	temperature := weather.Temperature(weatherData)
+	feelsLike := weather.FeelsLike(weatherData)
+	description := weather.Description(weatherData)
+	humidity := weather.Humidity(weatherData)
+	pressure := weather.Pressure(weatherData)
+	wind := weather.WindSummary(weatherData)
+	gusts := weather.GustSpeed(weatherData)
+	updatedDateTime := weather.UpdatedDateTime(weatherData)
+
+	statusBuilder := strings.Builder{}
+	statusBuilder.WriteString(description)
+	statusBuilder.WriteString(" at ")
+	statusBuilder.WriteString(temperature)
+	statusBuilder.WriteString(", feels like ")
+	statusBuilder.WriteString(feelsLike)
+	statusBuilder.WriteString(". Humidity is ")
+	statusBuilder.WriteString(humidity)
+	statusBuilder.WriteString(". Pressure is ")
+	statusBuilder.WriteString(pressure)
+	statusBuilder.WriteString(". Winds of ")
+	statusBuilder.WriteString(wind)
+	statusBuilder.WriteString(" with gusts of ")
+	statusBuilder.WriteString(gusts)
+	statusBuilder.WriteString(". Information updated at ")
+	statusBuilder.WriteString(updatedDateTime)
+	statusBuilder.WriteString(". #CornerBrook #Newfoundland #WeatherUpdate")
+
+	return statusBuilder.String()
+}
+
+func postToMastodon(status, mastodonServer, mastodonClientKey, mastodonClientSecret, mastodonAccessToken string) error {
+	client := mastodon.NewClient(&mastodon.Config{
+		Server:       mastodonServer,
+		ClientID:     mastodonClientKey,
+		ClientSecret: mastodonClientSecret,
+		AccessToken:  mastodonAccessToken,
+	})
+
+	_, err := client.PostStatus(context.Background(), &mastodon.Toot{
 		Status: status,
 	})
 	if err != nil {
-		log.Fatal(err)
 		return err
 	}
 
-	log.Printf("Posted weather update for %s.", updatedDateTime)
+	log.Printf("Posted weather update: %s", status)
 	return nil
 }
